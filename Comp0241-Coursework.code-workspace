@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../Dataset"
+		},
+		{
+			"path": "../../Comp0241_Photos/RealPhotos"
+		}
+	],
+	"settings": {}
+}
