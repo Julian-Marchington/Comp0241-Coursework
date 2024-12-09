@@ -9,7 +9,7 @@ from PIL import Image
 from collections import deque
 
 # Attempting to retrieve binary mask from image
-image = cv2.imread('/Users/julianmarchington/Desktop/Comp0241-Coursework/Dataset/images/000030.png')
+image = cv2.imread('/Users/julianmarchington/Desktop/Comp0241-Coursework/Dataset/images/000099.png')
 hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
 # Define blue range
