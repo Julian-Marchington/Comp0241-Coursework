@@ -135,92 +135,68 @@ def evaluate_roc(predicted_mask, ground_truth_mask):
     
     return fpr, tpr, roc_auc
 
-# Plot ROC Curve
-def plot_roc_curve(fpr, tpr, roc_auc, title):
-    plt.figure()
-    plt.plot(fpr, tpr, color='blue', label=f'ROC curve (AUC = {roc_auc:.2f})')
-    plt.plot([0, 1], [0, 1], color='grey', linestyle='--')  # Diagonal line
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
-    plt.title(f'ROC Curve for Image {title}')
-    plt.legend(loc='lower right')
-    plt.show()
+def compute_tp_fp(predicted_mask, ground_truth_mask):
+    # Convert ground truth mask to binary (if needed)
+    ground_truth_mask = (ground_truth_mask[:, :, 0] > 0).astype(int)
+    
+    # Ensure the predicted mask is binary
+    predicted_mask_binary = (predicted_mask > 0).astype(int)
+
+    # Compute True Positives and False Positives
+    TP = np.sum((predicted_mask_binary == 1) & (ground_truth_mask == 1))
+    FP = np.sum((predicted_mask_binary == 1) & (ground_truth_mask == 0))
+
+    return TP, FP
+
 
 # Load images and masks
 images = load_images_from_folder(image_directory)
 masks = load_images_from_folder(mask_directory)
 
-# To store FPR, TPR, and AUC for each method
-fpr_list_a, tpr_list_a = [], []
-fpr_list_b, tpr_list_b = [], []
-fpr_list_c, tpr_list_c = [], []
-roc_auc_list_a, roc_auc_list_b, roc_auc_list_c = [], [], []
+# To store TP and FP values for each method
+tp_fp_a, tp_fp_b, tp_fp_c = [], [], []
 
 for i in range(len(images)):
-    # Generate predicted masks using Method A and Method B
+    # Generate predicted masks using Method A, B, and C
     predicted_mask_a = method_a(images[i])
-    predicted_mask_b = method_b(images[i])  
+    predicted_mask_b = method_b(images[i])
     predicted_mask_c = method_c(images[i])
 
-    # Evaluate ROC and AUC for Method A
-    fpr_a, tpr_a, roc_auc_a = evaluate_roc(predicted_mask_a, masks[i])
-    fpr_list_a.append(fpr_a)
-    tpr_list_a.append(tpr_a)
-    roc_auc_list_a.append(roc_auc_a)
+    # Compute TP and FP for Method A
+    TP_a, FP_a = compute_tp_fp(predicted_mask_a, masks[i])
+    tp_fp_a.append((TP_a, FP_a))
 
-    # Evaluate ROC and AUC for Method B
-    fpr_b, tpr_b, roc_auc_b = evaluate_roc(predicted_mask_b, masks[i])
-    fpr_list_b.append(fpr_b)
-    tpr_list_b.append(tpr_b)
-    roc_auc_list_b.append(roc_auc_b)
+    # Compute TP and FP for Method B
+    TP_b, FP_b = compute_tp_fp(predicted_mask_b, masks[i])
+    tp_fp_b.append((TP_b, FP_b))
 
-    # Evaluate ROC and AUC for Method C
-    fpr_c, tpr_c, roc_auc_c = evaluate_roc(predicted_mask_c, masks[i])
-    fpr_list_c.append(fpr_c)
-    tpr_list_c.append(tpr_c)
+    # Compute TP and FP for Method C
+    TP_c, FP_c = compute_tp_fp(predicted_mask_c, masks[i])
+    tp_fp_c.append((TP_c, FP_c))
 
-# Compute the mean TPR for Method A
-mean_tpr_a = np.mean([np.interp(np.linspace(0, 1, 100), fpr, tpr) for fpr, tpr in zip(fpr_list_a, tpr_list_a)], axis=0)
-mean_fpr = np.linspace(0, 1, 100)  # Common FPR range for interpolation
-
-# Compute the mean TPR for Method B
-mean_tpr_b = np.mean([np.interp(np.linspace(0, 1, 100), fpr, tpr) for fpr, tpr in zip(fpr_list_b, tpr_list_b)], axis=0)
-
-# Compute the mean TPR for Method C
-mean_tpr_c = np.mean([np.interp(np.linspace(0, 1, 100), fpr, tpr) for fpr, tpr in zip(fpr_list_c, tpr_list_c)], axis=0)
-
-# Add Mean ROC Curve to Method A Plot
-plt.figure()
-#for i in range(len(fpr_list_a)):
-#    plt.plot(fpr_list_a[i], tpr_list_a[i], alpha=0.5, label=f'Image {i} (AUC = {roc_auc_list_a[i]:.2f})')
-plt.plot(mean_fpr, mean_tpr_a, color='blue', label='Mean ROC', linewidth=2)
-plt.plot([0, 1], [0, 1], color='grey', linestyle='--', label='Random Guess')
-plt.xlabel('False Positive Rate')
-plt.ylabel('True Positive Rate')
-plt.title('ROC Curves for Method A with Mean')
-plt.legend(loc='lower right')
+# Scatter plot for Method A
+tp_a, fp_a = zip(*tp_fp_a)  # Unpack TP and FP values
+plt.scatter(fp_a, tp_a, color='blue', label='Method A')
+plt.xlabel('False Positives (FP)')
+plt.ylabel('True Positives (TP)')
+plt.title('TP/FP Plot for Method A')
+plt.legend()
 plt.show()
 
-# Add Mean ROC Curve to Method B Plot
-plt.figure()
-#for i in range(len(fpr_list_b)):
-#    plt.plot(fpr_list_b[i], tpr_list_b[i], alpha=0.5, label=f'Image {i} (AUC = {roc_auc_list_b[i]:.2f})')
-plt.plot(mean_fpr, mean_tpr_b, color='blue', label='Mean ROC', linewidth=2)
-plt.plot([0, 1], [0, 1], color='grey', linestyle='--', label='Random Guess')
-plt.xlabel('False Positive Rate')
-plt.ylabel('True Positive Rate')
-plt.title('ROC Curves for Method B with Mean')
-plt.legend(loc='lower right')
+# Scatter plot for Method B
+tp_b, fp_b = zip(*tp_fp_b)  # Unpack TP and FP values
+plt.scatter(fp_b, tp_b, color='green', label='Method B')
+plt.xlabel('False Positives (FP)')
+plt.ylabel('True Positives (TP)')
+plt.title('TP/FP Plot for Method B')
+plt.legend()
 plt.show()
 
-# Add Mean ROC Curve to Method C Plot
-plt.figure()
-#for i in range(len(fpr_list_c)):
-#    plt.plot(fpr_list_c[i], tpr_list_c[i], alpha=0.5, label=f'Image {i} (AUC = {roc_auc_list_c[i]:.2f})')
-plt.plot(mean_fpr, mean_tpr_c, color='blue', label='Mean ROC', linewidth=2)
-plt.plot([0, 1], [0, 1], color='grey', linestyle='--', label='Random Guess')
-plt.xlabel('False Positive Rate')
-plt.ylabel('True Positive Rate')
-plt.title('ROC Curves for Method C with Mean')
-plt.legend(loc='lower right')
+# Scatter plot for Method C
+tp_c, fp_c = zip(*tp_fp_c)  # Unpack TP and FP values
+plt.scatter(fp_c, tp_c, color='red', label='Method C')
+plt.xlabel('False Positives (FP)')
+plt.ylabel('True Positives (TP)')
+plt.title('TP/FP Plot for Method C')
+plt.legend()
 plt.show()
