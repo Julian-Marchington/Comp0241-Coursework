@@ -12,7 +12,7 @@ from collections import deque
 image = cv2.imread('/Users/julianmarchington/Desktop/Comp0241-Coursework/Dataset/images/000099.png')
 hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
-# Define blue range
+# Define ranges (found through ColourRangeDetector.py)
 lower_blue = np.array([100, 50, 50]) 
 upper_blue = np.array([140, 255, 255])
 
