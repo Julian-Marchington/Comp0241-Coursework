@@ -83,7 +83,7 @@ if contours:
         centroid_y = int(M["m01"] / M["m00"])
         
         # Highlight the centroid on the output image
-        cv2.circle(output_image, (centroid_x, centroid_y), 5, (0, 255, 0), -1)
+        cv2.circle(output_image, (centroid_x, centroid_y), 10, (255, 0, 255), -1)
         print(f"Centroid of AOI: ({centroid_x}, {centroid_y})")
     else:
         print("No valid centroid found (area is zero).")
