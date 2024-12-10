@@ -4,16 +4,18 @@ import os
 import matplotlib.pyplot as plt
 
 # Path to the directory containing images
-image_path = '/Users/julianmarchington/Desktop/Comp0241-Coursework/Dataset/images/000069.png'  # Replace with your image directory
-
+image_path = '/Users/julianmarchington/Desktop/Comp0241-Coursework/Dataset/Image_2.png'  # Replace with your image directory
 
 # Define color ranges for segmentation
 lower_blue = np.array([100, 50, 50]) 
 upper_blue = np.array([140, 255, 255])
+
 lower_clouds = np.array([85, 5, 180]) 
 upper_clouds = np.array([135, 80, 255])
+
 lower_test = np.array([60, 0, 0])
 upper_test = np.array([179, 173, 134])
+
 lower_bound = np.array([69, 20, 0])
 upper_bound = np.array([179, 255, 255])
 
@@ -66,7 +68,6 @@ final_mask = cv2.bitwise_and(cleaned_mask, cleaned_mask, mask=circle_mask)
 
 # Create the output image by applying the final mask
 output_image = cv2.bitwise_and(image, image, mask=final_mask)
-
 
 # Find contours in the final mask
 contours, _ = cv2.findContours(final_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
