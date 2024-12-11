@@ -1,20 +1,14 @@
 import numpy as np
 import cv2
-import os
-import matplotlib.pyplot as plt
-
-# Path to the directory containing images
-image_directory = '/Users/julianmarchington/Desktop/Comp0241-Coursework/Dataset/images/'  # Replace with your image directory
-
-# Get a list of all image files in the directory
-image_files = [f for f in os.listdir(image_directory) if f.endswith('.png') or f.endswith('.jpg')]
 
 def colourDetection(image):
-
+    """
+    Segments the image based on predefined HSV color ranges.
+    """
     # Define color ranges for segmentation
-    lower_blue = np.array([100, 50, 50]) 
+    lower_blue = np.array([100, 50, 50])
     upper_blue = np.array([140, 255, 255])
-    lower_clouds = np.array([85, 5, 180]) 
+    lower_clouds = np.array([85, 5, 180])
     upper_clouds = np.array([135, 80, 255])
     lower_test = np.array([60, 0, 0])
     upper_test = np.array([179, 173, 134])
@@ -42,39 +36,40 @@ def colourDetection(image):
 
     return cleaned_mask
 
-
-def circleDetection(image):
-
-    # Apply Gaussian Blur to reduce noise on the cleaned mask directly
+def circleDetection(image, dp=1, minDist=20, param1=50, param2=30, minRadius=0, maxRadius=0):
+    """
+    Detects circles in the input image using Hough Circle Transform.
+    """
+    # Apply Gaussian Blur to reduce noise
     blurred_mask = cv2.GaussianBlur(image, (9, 9), 2)
 
-    # Use Hough Circle Transform to detect circles in the blurred mask
-    circles = cv2.HoughCircles(blurred_mask, 
-                                cv2.HOUGH_GRADIENT, 
-                                dp=1, 
-                                minDist=20, 
-                                param1=50, 
-                                param2=30, 
-                                minRadius=0, 
-                                maxRadius=0)
+    # Detect circles
+    circles = cv2.HoughCircles(
+        blurred_mask,
+        cv2.HOUGH_GRADIENT,
+        dp=dp,
+        minDist=minDist,
+        param1=param1,
+        param2=param2,
+        minRadius=minRadius,
+        maxRadius=maxRadius
+    )
 
     # Create a mask for the detected circles
     circle_mask = np.zeros_like(blurred_mask)
 
     if circles is not None:
         circles = np.uint16(np.around(circles))
-        for i in circles[0, :1]:  # Only takes the first detected circle
+        for i in circles[0]:
             center_x, center_y, radius = i
-            cv2.circle(circle_mask, (center_x, center_y), radius, (255, 255, 255), thickness =-1)
-    
+            cv2.circle(circle_mask, (center_x, center_y), radius, 255, thickness=-1)
+
     return circle_mask
 
-def combineMasks(cleaned_mask, circle_mask, image):
-
+def combineMasks(cleaned_mask, circle_mask):
+    """
+    Combines color-based and circle-based masks to create a final segmentation.
+    """
     # Combine the color mask and the circle mask
-    final_mask = cv2.bitwise_and(cleaned_mask, cleaned_mask, mask=circle_mask)
-
-    # Create the output image by applying the final mask
-    output_image = cv2.bitwise_and(image, image, mask=final_mask)
-
-    return output_image
+    final_mask = cv2.bitwise_and(cleaned_mask, circle_mask)
+    return final_mask
