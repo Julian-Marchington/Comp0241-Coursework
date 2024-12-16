@@ -73,11 +73,15 @@ def compute_weighted_average(rotation_periods):
     weighted_average = np.sum(unique_periods * weights)
     return weighted_average
 
-def measure_rotation_period_with_visualization(video_path):
-    cap = cv2.VideoCapture(video_path)
+def measure_rotation_period_with_camera():
+    cap = cv2.VideoCapture(0)  # Open the default camera (ID 0)
+    if not cap.isOpened():
+        print("Error: Unable to access the camera.")
+        return
+
     sift = cv2.SIFT_create()
 
-    fps = cap.get(cv2.CAP_PROP_FPS)
+    fps = 30  # Assume 30 FPS for the camera as an approximation
     frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
@@ -144,7 +148,7 @@ def measure_rotation_period_with_visualization(video_path):
                         rotation_periods.append(period)
                     cumulative_angle = 0  # Reset for next rotation
 
-
+        # Create a binary mask for the region of interest (ROI)
         mask1 = colourDetection(frame)
         mask2 = circleDetection(mask1)
         mask = combineMasks(mask1, mask2)
@@ -168,11 +172,11 @@ def measure_rotation_period_with_visualization(video_path):
     plot_metrics(timestamps, rotations, rotation_periods)
 
     if rotation_periods:
-        final_rotation_period = np.array(rotation_periods).mean()
-        print(f"Final Rotation Period: {final_rotation_period:.2f} seconds")
+        final_rotation_period = compute_weighted_average(rotation_periods)
+        print(f"Final Rotation Period (Weighted Average): {final_rotation_period:.2f} seconds")
 
     return rotations, timestamps, rotation_periods, final_rotation_period if rotation_periods else None
 
 if __name__ == "__main__":
-    video_path = '/home/ayush/Documents/roboticsAILabs/Comp0241-Coursework/Task 3/AOBottomView.mp4'
-    rotations, timestamps, rotation_periods, final_rotation_period = measure_rotation_period_with_visualization(video_path)
+    print("Point your camera at the rotating object.")
+    rotations, timestamps, rotation_periods, final_rotation_period = measure_rotation_period_with_camera()
